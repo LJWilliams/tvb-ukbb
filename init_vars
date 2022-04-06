@@ -86,10 +86,37 @@ export LC_ALL=C
 #ENV VARIABLES FOR BIOBANK
 export BB_BIN_DIR="$BBDIR/tvb-ukbb"
 export FSLGPUDIR="$BB_BIN_DIR/bb_diffusion_pipeline/bb_bedpostx"
-export MNI="$FSLDIR/data/standard/MNI152_T1_1mm.nii.gz"
-export MNI_mask="$FSLDIR/data/standard/MNI152_T1_1mm_brain_mask.nii.gz"
-export MNI_brain="$FSLDIR/data/standard/MNI152_T1_1mm_brain.nii.gz"
-export MNI_dir="$FSLDIR/data/standard"
+#------------------
+# Specify template here (default MNI152) Leave blank to use individual subject templates
+#------------------
+TEMPLATE="$FSLDIR/data/standard/MNI152_T1_1mm.nii.gz" # TEMPLATE=
+# if using individual subject spaces as template list them as the third column in SUBJECT_AGE_LIST
+SUBJECT_AGE_LIST="./subject_age_list.tsv" # TO BE MODIFIED BY USER
+if [[ -f ${TEMPLATE} ]]; then
+  export MNI="${TEMPLATE}"
+  export MNI_mask="${TEMPLATE%.nii.gz}_brain_mask.nii.gz"
+  export MNI_brain="${TEMPLATE%.nii.gz}_brain.nii.gz"
+  export MNI_dir="${TEMPLATE%/*}"
+else 
+  MNI=()
+  MNI_mask=()
+  MNI_brain=()
+  MNI_dir=()
+  
+  i=0
+
+  while IFS= read -r line
+  do
+    echo "${line}"
+  	MNI[$i]=${line}
+  	MNI_mask[$i]=${line%.nii.gz}_brain_mask.nii.gz
+  	MNI_brain[$i]=${line%.nii.gz}_brain.nii.gz
+  	MNI_dir[$i]=${line%/*}
+  	i=$((${i} + 1))
+  done <<< $(cut -f3 subject_age_list.tsv)
+
+fi
+
 export templ="$BB_BIN_DIR/templates"
 export PYTHONPATH="$SOFTDIR/software/env/bin/python"
 
